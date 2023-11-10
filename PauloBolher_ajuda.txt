@@ -1,0 +1,13 @@
+F2 - Salvar o que foi digitado
+F10 - Abrir um arquivo existente
+F12 - Exibir informacoes do aluno
+Esc - Sair da aplicacao ou quando apertado (F1 ou F12) retorna para  tela do editor
+Setas - Permitir navegar pelos arquivo
+Insert - Permite reescrever o texto onde o cursor esta
+Page up - Trocar a pagina para cima 
+Page down - Trocar a pagina para baixo
+Home - leva o cursor para o inico da linha
+End - leva o cursor para o final da linha
+Delete - apagar o caracter onde o cursor esta em cima
+Backspace - Remove o elemento anterior a posicao do cursor
+Enter - Coloca o cursor no inico da proxima linha
