@@ -114,7 +114,7 @@ void tecla_f12(lista **l){
 
 
 void main(){
-    int ch;
+    int ch, retorno;
     int linha_cursor = 0, coluna_cursor = 0, posicao_inserir = 0;
 
     lista *l;
@@ -145,7 +145,7 @@ void main(){
             tecla_f12(&l);
 
         }else if(ch == KEY_RIGHT){
-            if(verificar_andar_cursor_direita(&l, linha_cursor)){
+            if(verificar_andar_cursor_direita(&l, linha_cursor, coluna_cursor)){
                 linha_cursor++;
             }
             move(coluna_cursor, linha_cursor);
@@ -154,19 +154,31 @@ void main(){
             if(verificar_caractere_acima(&l, coluna_cursor, linha_cursor)){
                 coluna_cursor --;
             }
-            move(coluna_cursor, linha_cursor);
+
+        }else if(ch == KEY_DOWN){
+            if(verificar_caractere_baixo(&l, coluna_cursor, linha_cursor)){
+                coluna_cursor++;
+            }
 
         }else if(ch == KEY_LEFT){
-            if(verificar_andar_cursor_esquerda(&l, linha_cursor)){
+            if(verificar_andar_cursor_esquerda(&l, linha_cursor, coluna_cursor)){
                 linha_cursor--;
             }
             move(coluna_cursor, linha_cursor);
 
         ///caso nenhuma tecla de ação tenha sido preciona ele interpreta como um carcter e armazena na lista
+        }else if(ch == KEY_ENTER || ch == '\n'){
+
+            inserir_posicao(&l, posicao_inserir, '\n');
+            posicao_inserir++;
+            coluna_cursor ++;
+            linha_cursor = 0;
+            move(coluna_cursor, linha_cursor);
+
         }else {
             linha_cursor++;
 
-            if (linha_cursor % 120 == 0) {
+            if (linha_cursor % 119 == 0) {
 
                 inserir_posicao(&l, posicao_inserir, '\n');
                 posicao_inserir++;
