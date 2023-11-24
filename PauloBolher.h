@@ -150,6 +150,7 @@ int verificar_andar_cursor_esquerda(lista **l, int posicao_cursor, int coluna_cu
 
 }
 
+///verifica se tem um caracter a baixo de onde o cursor está para poder andar
 int verificar_caractere_baixo(lista **l, int linha_cursor, int coluna_cursor){
     int contador = 0, coluna_linha_inferior = 0;
     lista *linha_inferior = *l;
@@ -174,6 +175,66 @@ int verificar_caractere_baixo(lista **l, int linha_cursor, int coluna_cursor){
 
     move(linha_cursor + 1, coluna_linha_inferior);
     return 1;
+}
+
+///saber qual a posição que o cursor da lista o cursor está
+int saber_posicao_cursor(lista **l, int linha_cursor, int coluna_cursor){
+    lista *aux = *l;
+    int i, contador = 0, posicao = 0;
+
+    if(linha_cursor == 0){
+        for(i = 0; i<coluna_cursor; i++){
+            posicao ++;
+        }
+
+        return posicao;
+    }
+
+    while(contador <= linha_cursor - 1 && aux != NULL){
+        if(aux->caracter == '\n'){
+            contador ++;
+        }
+        posicao++;
+        aux = aux->next;
+    }
+
+    for(i = 0; i< coluna_cursor && aux != NULL; i++){
+        contador++;
+        posicao++;
+    }
+
+    return posicao;
+}
+
+void remover_posicao(lista **l, int posicao) {
+    lista *aux = *l;
+    lista *proximo;
+    int contador = 0;
+
+    if (*l == NULL) {
+        printf("Lista vazia.\n");
+        return;
+    }
+
+    if (posicao == 0) {
+        *l = aux->next;
+        free(aux);
+        return;
+    }
+
+    while (aux != NULL && contador < posicao - 1) {
+        aux = aux->next;
+        contador++;
+    }
+
+    if (aux == NULL || aux->next == NULL) {
+        printf("Posição inválida.\n");
+        return;
+    }
+
+    proximo = aux->next->next;
+    free(aux->next);
+    aux->next = proximo;
 }
 
 
@@ -236,24 +297,62 @@ int verificar_caractere_acima(lista **l, int linha_cursor, int coluna_cursor) {
     lista *linha_atual = *l;
     lista *linha_superior = *l;
 
-    while (contador < linha_cursor - 1 && linha_superior != NULL) {
-        if (linha_superior->caracter == '\n') {
-            contador++;
+    if(linha_cursor != 0){
+
+        while (contador < linha_cursor - 1 && linha_superior != NULL) {
+            if (linha_superior->caracter == '\n') {
+                contador++;
+            }
+            linha_superior = linha_superior->next;
         }
-        linha_superior = linha_superior->next;
-    }
 
-    if (linha_superior == NULL ) {
-        return 0;
-    }
-
-    while (linha_superior != NULL && linha_superior->caracter != '\n' && coluna_linha_superior < coluna_cursor) {
-        if (linha_superior->caracter != '\n') {
-            coluna_linha_superior++;
+        if (linha_superior == NULL ) {
+            return 0;
         }
-        linha_superior = linha_superior->next;
+
+        while (linha_superior != NULL && linha_superior->caracter != '\n' && coluna_linha_superior < coluna_cursor) {
+            if (linha_superior->caracter != '\n') {
+                coluna_linha_superior++;
+            }
+            linha_superior = linha_superior->next;
+        }
+
+        move(linha_cursor - 1, coluna_linha_superior);
+        return 1;
     }
 
-    move(linha_cursor - 1, coluna_linha_superior);
-    return 1;
+    return 0;
+}
+
+///descobre onde é o final da linha e retorna a posção para poder mover o cursor na função da tecla "End"
+int verificar_final_linha(lista **l, int linha_cursor, int coluna_cursor){
+    lista *aux = *l;
+
+    int i, contador = 0, posicao = 0;
+
+    if(linha_cursor == 0){
+
+        while(aux != NULL){
+            posicao++;
+            aux = aux->next;
+        }
+
+        return posicao;
+    }
+
+    while(contador <= linha_cursor - 1 && aux != NULL){
+        if(aux->caracter == '\n'){
+            contador ++;
+        }
+        aux = aux->next;
+    }
+
+    while(aux->caracter != '\n' && aux->next != NULL){
+        posicao++;
+        aux = aux->next;
+    }
+
+    return posicao;
+
+
 }

@@ -116,6 +116,10 @@ void tecla_f12(lista **l){
 void main(){
     int ch, retorno;
     int linha_cursor = 0, coluna_cursor = 0, posicao_inserir = 0;
+    int total_linha = 0;
+    int verficar_pageDOWN = 0, verificar_pageUP = 0;
+    int back_space;
+
 
     lista *l;
 
@@ -127,6 +131,8 @@ void main(){
     cbreak();
     /// inicialzia a mapeação de teclas como f1 e f10 da biblioteca curses
     keypad(stdscr, TRUE);
+
+    scrollok(stdscr, TRUE);
 
     do{
         ch = getch();
@@ -166,15 +172,137 @@ void main(){
             }
             move(coluna_cursor, linha_cursor);
 
-        ///caso nenhuma tecla de ação tenha sido preciona ele interpreta como um carcter e armazena na lista
         }else if(ch == KEY_ENTER || ch == '\n'){
 
             inserir_posicao(&l, posicao_inserir, '\n');
             posicao_inserir++;
             coluna_cursor ++;
             linha_cursor = 0;
+            total_linha ++;
+
             move(coluna_cursor, linha_cursor);
 
+        ///tecla insert
+        }else if(ch == KEY_IC){
+
+            ///dentro do inserte foi implementado novamente a navegação com setas para ele poder navegar então está com o insert precionado
+
+            int retorno;
+            do{
+                ch = getch();
+
+                if(ch == KEY_LEFT){
+                    if(verificar_andar_cursor_esquerda(&l, linha_cursor, coluna_cursor)){
+                        linha_cursor--;
+                    }
+                    move(coluna_cursor, linha_cursor);
+
+                }else if(ch == KEY_RIGHT){
+                    if(verificar_andar_cursor_direita(&l, linha_cursor, coluna_cursor)){
+                        linha_cursor++;
+                    }
+                    move(coluna_cursor, linha_cursor);
+
+                }else{
+
+                    if(ch != KEY_IC){
+                        retorno = saber_posicao_cursor(&l, coluna_cursor, linha_cursor);
+
+                        printw("%d", retorno);
+
+                        remover_posicao(&l, retorno);
+                        linha_cursor--;
+                        inserir_posicao(&l, retorno, ch);
+                        linha_cursor++;
+
+                        clear();
+                        exibir_lista(l);
+
+                        move(coluna_cursor, linha_cursor);
+                    }
+                }
+
+            }while(ch != KEY_IC);
+
+        ///tecla page down
+        }else if(ch == KEY_NPAGE){
+
+            verficar_pageDOWN = total_linha - coluna_cursor;
+
+            if(verficar_pageDOWN >= 25){
+                coluna_cursor = coluna_cursor + 25;
+                move(coluna_cursor, linha_cursor);
+
+            }else{
+                coluna_cursor = total_linha;
+                move(total_linha, linha_cursor);
+            }
+
+        ///tecla page up
+        }else if(ch == KEY_PPAGE){
+
+            verificar_pageUP = coluna_cursor - total_linha+1 ;
+
+            if(verificar_pageUP >= 0){
+                coluna_cursor = coluna_cursor - 25;
+                move(coluna_cursor, linha_cursor);
+
+            }else{
+                coluna_cursor = 0;
+                move(coluna_cursor, linha_cursor);
+            }
+
+        }else if(ch == KEY_HOME){
+            move(coluna_cursor, 0);
+
+            linha_cursor = 0;
+
+
+        }else if(ch == KEY_END){
+
+            linha_cursor = verificar_final_linha(&l, coluna_cursor, linha_cursor);
+
+            move(coluna_cursor, linha_cursor);
+
+        }else if(ch == 8){
+
+            if(l != NULL){
+
+                back_space = saber_posicao_cursor(&l, coluna_cursor, linha_cursor);
+
+                back_space = back_space - 1;
+
+                remover_posicao(&l, back_space);
+
+
+                clear();
+                exibir_lista(l);
+                refresh();
+
+                linha_cursor --;
+
+                move(coluna_cursor, linha_cursor);
+            }
+
+        }else if(ch == KEY_DC){
+
+            if(l != NULL){
+
+                back_space = saber_posicao_cursor(&l, coluna_cursor, linha_cursor);
+
+                remover_posicao(&l, back_space);
+
+
+                clear();
+                exibir_lista(l);
+                refresh();
+
+                linha_cursor --;
+
+                move(coluna_cursor, linha_cursor);
+            }
+
+        ///caso nenhuma tecla de ação tenha sido preciona ele interpreta como um carcter e armazena na lista
         }else {
             linha_cursor++;
 
@@ -183,12 +311,14 @@ void main(){
                 inserir_posicao(&l, posicao_inserir, '\n');
                 posicao_inserir++;
                 coluna_cursor ++;
+                total_linha ++;
                 linha_cursor = 0;
             }
 
-            inserir_posicao(&l, posicao_inserir, (char)ch);
+            inserir_fim(&l, (char)ch);
             move(coluna_cursor, linha_cursor);
             posicao_inserir++;
+
         }
 
     /// encerra o progrma se o carcater lido for o 27 no caso é a tecla Esq
