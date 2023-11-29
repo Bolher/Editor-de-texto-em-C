@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <curses.h> // para mapear teclas como f1 e f10, e tambem armazenar carcteres na estrutura de dados sem apartar enter
-#include <unistd.h> // para saber se um arquivo já existe
+#include <curses.h> /// para mapear teclas como f1 e f10, e tambem armazenar carcteres na estrutura de dados sem apartar enter
+#include <unistd.h> /// para saber se um arquivo já existe
 #include "PauloBolher.h"
 
 void tecla_F1(lista **l){
@@ -120,7 +120,6 @@ void main(){
     int verficar_pageDOWN = 0, verificar_pageUP = 0;
     int back_space;
 
-
     lista *l;
 
     inicializar(&l);
@@ -131,7 +130,7 @@ void main(){
     cbreak();
     /// inicialzia a mapeação de teclas como f1 e f10 da biblioteca curses
     keypad(stdscr, TRUE);
-
+    ///paginação no terminal
     scrollok(stdscr, TRUE);
 
     do{
@@ -141,37 +140,49 @@ void main(){
         if (ch == KEY_F(1)) {
             tecla_F1(&l);
 
+        ///f2
         }else if(ch == KEY_F(2)){
             tecla_F2(&l);
 
+        ///f10
         }else if(ch == KEY_F(10)){
             tecla_F10(&l);
 
+        ///f12
         }else if(ch == KEY_F(12)){
             tecla_f12(&l);
 
+        ///seta para direita
         }else if(ch == KEY_RIGHT){
             if(verificar_andar_cursor_direita(&l, linha_cursor, coluna_cursor)){
                 linha_cursor++;
             }
             move(coluna_cursor, linha_cursor);
 
+        ///seta para cima
         }else if(ch == KEY_UP){
-            if(verificar_caractere_acima(&l, coluna_cursor, linha_cursor)){
+            retorno = verificar_caractere_acima(&l, coluna_cursor, linha_cursor);
+            if(retorno != 0){
+                linha_cursor = retorno;
                 coluna_cursor --;
             }
 
+        ///seta apra baixo
         }else if(ch == KEY_DOWN){
-            if(verificar_caractere_baixo(&l, coluna_cursor, linha_cursor)){
+            retorno = verificar_caractere_baixo(&l, coluna_cursor, linha_cursor);
+            if(retorno != 0){
+                linha_cursor = retorno;
                 coluna_cursor++;
             }
 
+        ///seta para esquerda
         }else if(ch == KEY_LEFT){
             if(verificar_andar_cursor_esquerda(&l, linha_cursor, coluna_cursor)){
                 linha_cursor--;
             }
             move(coluna_cursor, linha_cursor);
 
+        ///tecla enter
         }else if(ch == KEY_ENTER || ch == '\n'){
 
             inserir_posicao(&l, posicao_inserir, '\n');
@@ -182,12 +193,12 @@ void main(){
 
             move(coluna_cursor, linha_cursor);
 
+
         ///tecla insert
         }else if(ch == KEY_IC){
 
-            ///dentro do inserte foi implementado novamente a navegação com setas para ele poder navegar então está com o insert precionado
+            ///dentro do inserte foi implementado novamente a navegação com setas para ele poder navegar quando está no modo insert
 
-            int retorno;
             do{
                 ch = getch();
 
@@ -252,18 +263,20 @@ void main(){
                 move(coluna_cursor, linha_cursor);
             }
 
+        ///tecla home
         }else if(ch == KEY_HOME){
             move(coluna_cursor, 0);
 
             linha_cursor = 0;
 
-
+        ///tecla end
         }else if(ch == KEY_END){
 
             linha_cursor = verificar_final_linha(&l, coluna_cursor, linha_cursor);
 
             move(coluna_cursor, linha_cursor);
 
+        /// tecla backspace
         }else if(ch == 8){
 
             if(l != NULL){
@@ -283,7 +296,7 @@ void main(){
 
                 move(coluna_cursor, linha_cursor);
             }
-
+        ///tecla delete
         }else if(ch == KEY_DC){
 
             if(l != NULL){
