@@ -5,6 +5,10 @@
 #include <unistd.h> /// para saber se um arquivo já existe
 #include "PauloBolher.h"
 
+///foi utilizado a biblioteca PDcurses sendo necessario a sua instalação e compilação para o funcioanmento do codigo fonte
+///foi perguntado para o professor se poderia utilizar essa biblioteca e o mesmo autorizou o uso da biblioteca
+
+
 void tecla_F1(lista **l){
     int ch;
     char caracter;
@@ -112,13 +116,188 @@ void tecla_f12(lista **l){
     }
 }
 
+void seta_para_direita(lista **l, int *linha_cursor, int *coluna_cursor){
+    if(verificar_andar_cursor_direita(l, coluna_cursor, linha_cursor)){
+        (*coluna_cursor)++;
+    }
+    move(*linha_cursor, *coluna_cursor);
+}
+
+void seta_para_esquerda(lista **l, int *linha_cursor, int *coluna_cursor){
+    if(verificar_andar_cursor_esquerda(l, coluna_cursor, linha_cursor)){
+        (*coluna_cursor)--;
+    }
+    move(*linha_cursor, *coluna_cursor);
+}
+
+void seta_para_cima(lista **l, int *linha_cursor, int *coluna_cursor){
+    int retorno;
+
+    retorno = verificar_caractere_acima(l, linha_cursor, coluna_cursor);
+    if(retorno != 0){
+        *coluna_cursor = retorno;
+        (*linha_cursor)--;
+    }
+}
+
+void seta_para_baixo(lista **l, int *linha_cursor, int *coluna_cursor){
+    int retorno;
+
+    retorno = verificar_caractere_baixo(l, linha_cursor, coluna_cursor);
+    if(retorno != 0){
+        *coluna_cursor = retorno;
+        (*linha_cursor)++;
+    }
+}
+
+void page_down(lista **l, int *linha_cursor, int *coluna_cursor, int total_linha){
+    int verficar_pageDOWN = 0;
+
+    verficar_pageDOWN = total_linha - (*linha_cursor);
+
+    if(verficar_pageDOWN >= 25){
+        *linha_cursor = (*linha_cursor) + 25;
+        move(*linha_cursor, *coluna_cursor);
+
+    }else{
+        *linha_cursor = total_linha;
+        move(total_linha, *coluna_cursor);
+    }
+}
+
+void page_up(lista **l, int *linha_cursor, int *coluna_cursor, int total_linha){
+    int verificar_pageUP = 0;
+
+    verificar_pageUP = (*linha_cursor) - total_linha + 1 ;
+
+    if(verificar_pageUP >= 0){
+        *linha_cursor = (*linha_cursor) - 25;
+        move(*linha_cursor, *coluna_cursor);
+
+    }else{
+        *linha_cursor = 0;
+        move(*linha_cursor, *coluna_cursor);
+    }
+}
+
+void enter(lista **l, int *linha_cursor, int *coluna_cursor, int *posicao_inserir, int *total_linha){
+    int retorno;
+    char oi;
+
+    retorno = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
+    inserir_posicao(l, &retorno, '\n');
+    (*coluna_cursor)++;
+
+
+    if(verificar_andar_cursor_direita(l, coluna_cursor, linha_cursor)){
+
+        retorno = contador_coluna(l, *linha_cursor, *coluna_cursor);
+        (*linha_cursor)++;
+        (*posicao_inserir) ++;
+        (*total_linha) ++;
+        move(*linha_cursor, retorno);
+
+        seta_para_cima(l, linha_cursor, coluna_cursor);
+        seta_para_baixo(l, linha_cursor, coluna_cursor);
+
+    }else{
+
+        *coluna_cursor = 0;
+        (*linha_cursor)++;
+        (*posicao_inserir) ++;
+        (*total_linha) ++;
+        move(*linha_cursor, *coluna_cursor);
+
+    }
+
+
+
+    clear();
+    exibir_lista(*l);
+    refresh();
+
+    //printw("linha: %d, coluna: %d", *linha_cursor, *coluna_cursor);
+
+
+}
+
+void insert(lista **l, int *linha_cursor, int *coluna_cursor, char ch){
+    lista *aux = *l;
+    int j, contador = 0;
+    if(*linha_cursor == 0){
+
+        for(j =0; j< *coluna_cursor; j++){
+            aux = aux->next;
+        }
+        if(aux != NULL){
+            aux->caracter = ch;
+        }
+
+    }else{
+
+        ///caso não esteja na primeira linha percorre até a linha do cursosr contando a quantidade de "\n"
+        while(contador != *linha_cursor){
+
+            if(aux->caracter == '\n'){
+                contador++;
+            }
+            aux = aux->next;
+
+        }
+
+        /// realiza a mesma coisa que o for de quando o cursor está na primeira linha
+        for(j = 0; j< *coluna_cursor; j++){
+            aux = aux->next;
+        }
+
+        aux->caracter = ch;
+    }
+
+    clear();
+    exibir_lista(*l);
+
+    move(*linha_cursor, *coluna_cursor);
+}
+
+void apagar(lista **l, int *linha_cursor, int *coluna_cursor){
+    int posicao_cursor;
+
+    if (*l != NULL) {
+        posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
+        posicao_cursor = posicao_cursor - 1;
+
+        remover_posicao(l, posicao_cursor);
+        clear();
+        exibir_lista(*l);
+        refresh();
+
+        (*coluna_cursor)--;
+        move(*linha_cursor, *coluna_cursor);
+    }
+}
+
+void tecla_delete(lista **l, int *linha_cursor, int *coluna_cursor){
+    int posicao_cursor;
+
+    if (*l != NULL) {
+        posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
+
+        remover_posicao(l, posicao_cursor);
+        clear();
+        exibir_lista(*l);
+        refresh();
+
+        (*coluna_cursor)--;
+        move(*linha_cursor, *coluna_cursor);
+    }
+
+}
 
 void main(){
-    int ch, retorno;
+    int ch;
     int linha_cursor = 0, coluna_cursor = 0, posicao_inserir = 0;
     int total_linha = 0;
-    int verficar_pageDOWN = 0, verificar_pageUP = 0;
-    int back_space;
+    int retorno, inserir;
 
     lista *l;
 
@@ -154,45 +333,23 @@ void main(){
 
         ///seta para direita
         }else if(ch == KEY_RIGHT){
-            if(verificar_andar_cursor_direita(&l, linha_cursor, coluna_cursor)){
-                linha_cursor++;
-            }
-            move(coluna_cursor, linha_cursor);
+            seta_para_direita(&l, &coluna_cursor, &linha_cursor);
 
         ///seta para cima
         }else if(ch == KEY_UP){
-            retorno = verificar_caractere_acima(&l, coluna_cursor, linha_cursor);
-            if(retorno != 0){
-                linha_cursor = retorno;
-                coluna_cursor --;
-            }
+            seta_para_cima(&l, &coluna_cursor, &linha_cursor);
 
         ///seta apra baixo
         }else if(ch == KEY_DOWN){
-            retorno = verificar_caractere_baixo(&l, coluna_cursor, linha_cursor);
-            if(retorno != 0){
-                linha_cursor = retorno;
-                coluna_cursor++;
-            }
+            seta_para_baixo(&l, &coluna_cursor, &linha_cursor);
 
         ///seta para esquerda
         }else if(ch == KEY_LEFT){
-            if(verificar_andar_cursor_esquerda(&l, linha_cursor, coluna_cursor)){
-                linha_cursor--;
-            }
-            move(coluna_cursor, linha_cursor);
+            seta_para_esquerda(&l, &coluna_cursor, &linha_cursor);
 
         ///tecla enter
         }else if(ch == KEY_ENTER || ch == '\n'){
-
-            inserir_posicao(&l, posicao_inserir, '\n');
-            posicao_inserir++;
-            coluna_cursor ++;
-            linha_cursor = 0;
-            total_linha ++;
-
-            move(coluna_cursor, linha_cursor);
-
+            enter(&l, &coluna_cursor, &linha_cursor, &posicao_inserir, &total_linha);
 
         ///tecla insert
         }else if(ch == KEY_IC){
@@ -203,33 +360,20 @@ void main(){
                 ch = getch();
 
                 if(ch == KEY_LEFT){
-                    if(verificar_andar_cursor_esquerda(&l, linha_cursor, coluna_cursor)){
-                        linha_cursor--;
-                    }
-                    move(coluna_cursor, linha_cursor);
+                    seta_para_esquerda(&l, &coluna_cursor, &linha_cursor);
 
                 }else if(ch == KEY_RIGHT){
-                    if(verificar_andar_cursor_direita(&l, linha_cursor, coluna_cursor)){
-                        linha_cursor++;
-                    }
-                    move(coluna_cursor, linha_cursor);
+                    seta_para_direita(&l, &coluna_cursor, &linha_cursor);
+
+                }else if(ch == KEY_UP){
+                    seta_para_cima(&l, &coluna_cursor, &linha_cursor);
+
+                }else if(ch == KEY_DOWN){
+                    seta_para_baixo(&l, &coluna_cursor, &linha_cursor);
 
                 }else{
-
                     if(ch != KEY_IC){
-                        retorno = saber_posicao_cursor(&l, coluna_cursor, linha_cursor);
-
-                        printw("%d", retorno);
-
-                        remover_posicao(&l, retorno);
-                        linha_cursor--;
-                        inserir_posicao(&l, retorno, ch);
-                        linha_cursor++;
-
-                        clear();
-                        exibir_lista(l);
-
-                        move(coluna_cursor, linha_cursor);
+                        insert(&l, &coluna_cursor, &linha_cursor, (char)ch);
                     }
                 }
 
@@ -237,83 +381,29 @@ void main(){
 
         ///tecla page down
         }else if(ch == KEY_NPAGE){
-
-            verficar_pageDOWN = total_linha - coluna_cursor;
-
-            if(verficar_pageDOWN >= 25){
-                coluna_cursor = coluna_cursor + 25;
-                move(coluna_cursor, linha_cursor);
-
-            }else{
-                coluna_cursor = total_linha;
-                move(total_linha, linha_cursor);
-            }
+            page_down(&l, &coluna_cursor, &linha_cursor, total_linha);
 
         ///tecla page up
         }else if(ch == KEY_PPAGE){
-
-            verificar_pageUP = coluna_cursor - total_linha+1 ;
-
-            if(verificar_pageUP >= 0){
-                coluna_cursor = coluna_cursor - 25;
-                move(coluna_cursor, linha_cursor);
-
-            }else{
-                coluna_cursor = 0;
-                move(coluna_cursor, linha_cursor);
-            }
+            page_up(&l, &coluna_cursor, &linha_cursor, total_linha);
 
         ///tecla home
         }else if(ch == KEY_HOME){
             move(coluna_cursor, 0);
-
             linha_cursor = 0;
 
         ///tecla end
         }else if(ch == KEY_END){
-
             linha_cursor = verificar_final_linha(&l, coluna_cursor, linha_cursor);
-
             move(coluna_cursor, linha_cursor);
 
         /// tecla backspace
         }else if(ch == 8){
+            apagar(&l, &coluna_cursor, &linha_cursor);
 
-            if(l != NULL){
-
-                back_space = saber_posicao_cursor(&l, coluna_cursor, linha_cursor);
-
-                back_space = back_space - 1;
-
-                remover_posicao(&l, back_space);
-
-
-                clear();
-                exibir_lista(l);
-                refresh();
-
-                linha_cursor --;
-
-                move(coluna_cursor, linha_cursor);
-            }
         ///tecla delete
         }else if(ch == KEY_DC){
-
-            if(l != NULL){
-
-                back_space = saber_posicao_cursor(&l, coluna_cursor, linha_cursor);
-
-                remover_posicao(&l, back_space);
-
-
-                clear();
-                exibir_lista(l);
-                refresh();
-
-                linha_cursor --;
-
-                move(coluna_cursor, linha_cursor);
-            }
+            tecla_delete(&l, &coluna_cursor, &linha_cursor);
 
         ///caso nenhuma tecla de ação tenha sido preciona ele interpreta como um carcter e armazena na lista
         }else {
@@ -321,16 +411,26 @@ void main(){
 
             if (linha_cursor % 119 == 0) {
 
-                inserir_posicao(&l, posicao_inserir, '\n');
+                inserir_posicao(&l, &posicao_inserir, '\n');
                 posicao_inserir++;
                 coluna_cursor ++;
                 total_linha ++;
                 linha_cursor = 0;
             }
 
-            inserir_fim(&l, (char)ch);
-            move(coluna_cursor, linha_cursor);
+
+            inserir = saber_posicao_cursor(&l, &coluna_cursor, &linha_cursor);
+            inserir_posicao(&l, &inserir, (char)ch);
             posicao_inserir++;
+
+            clear();
+            exibir_lista(l);
+            refresh();
+
+            retorno = contador_coluna(&l, coluna_cursor, linha_cursor);
+            move(coluna_cursor, retorno);
+
+            //printw("linha: %d, coluna %d", coluna_cursor, retorno);
 
         }
 

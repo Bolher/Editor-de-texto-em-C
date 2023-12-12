@@ -72,23 +72,23 @@ void verificar_existencia_arquivo(char novo_nome[]) {
 
 }
 ///verifica se tem um caracter qualquer a frente do cursor para pdoer movimentar ele
-int verificar_andar_cursor_direita(lista **l, int posicao_cursor, int coluna_cursor){
+int verificar_andar_cursor_direita(lista **l, int *posicao_cursor, int *coluna_cursor){
 
     int j, i, contador = 0;
     lista *aux = *l;
 
     ///verifica se está na primeira linha ai percorre até a coluna do cursor ve se o ponteiro "next" do elemento onde está o cursor for != de NULL se for pode andar
     ///pq tem caracter a direita
-    if(coluna_cursor == 0){
+    if(*coluna_cursor == 0){
 
-        for(j =0; j<posicao_cursor; j++){
+        for(j =0; j< *posicao_cursor; j++){
             aux = aux->next;
         }
 
     }else{
 
         ///se não estiver na primeira linha percorre até a linha do cursor contando os "\n" e depois faz a mesma coisa de ver o ponteiro "next"
-        while(contador != coluna_cursor){
+        while(contador != *coluna_cursor){
 
             if(aux->caracter == '\n' || aux->caracter == 10){
                 contador++;
@@ -98,7 +98,7 @@ int verificar_andar_cursor_direita(lista **l, int posicao_cursor, int coluna_cur
 
         }
 
-        for(i = 0; i< posicao_cursor; i++){
+        for(i = 0; i< *posicao_cursor; i++){
             aux = aux->next;
         }
     }
@@ -110,15 +110,15 @@ int verificar_andar_cursor_direita(lista **l, int posicao_cursor, int coluna_cur
 }
 
 ///verifica se possui algum caracter a esquerda do cursor para poder movelo
-int verificar_andar_cursor_esquerda(lista **l, int posicao_cursor, int coluna_cursor){
+int verificar_andar_cursor_esquerda(lista **l, int *posicao_cursor, int *coluna_cursor){
     int j, i, contador = 0;
     lista *aux = *l;
     lista *anterior = NULL;
 
     ///se o cursor estiver na primeira linha ele percorre até percorre até a coluna onde o cursor está se a variavel "anterior" que a posição anteriro a o cursor for nulo quer
     ///dizer que não pode andar apra esqueda posi não há caracter lá
-    if(coluna_cursor == 0){
-        for(j =0; j<posicao_cursor; j++){
+    if(*coluna_cursor == 0){
+        for(j =0; j<*posicao_cursor; j++){
             anterior = aux;
             aux = aux->next;
         }
@@ -132,7 +132,7 @@ int verificar_andar_cursor_esquerda(lista **l, int posicao_cursor, int coluna_cu
     }else{
 
         ///caso não esteja na primeira linha percorre até a linha do cursosr contando a quantidade de "\n"
-        while(contador != coluna_cursor){
+        while(contador != *coluna_cursor){
 
             if(aux->caracter == '\n' || aux->caracter == 10){
                 contador++;
@@ -142,7 +142,7 @@ int verificar_andar_cursor_esquerda(lista **l, int posicao_cursor, int coluna_cu
         }
 
         /// realiza a mesma coisa que o for de quando o cursor está na primeira linha
-        for(i = 0; i< posicao_cursor; i++){
+        for(i = 0; i< *posicao_cursor; i++){
             anterior = aux;
             aux = aux->next;
         }
@@ -157,12 +157,12 @@ int verificar_andar_cursor_esquerda(lista **l, int posicao_cursor, int coluna_cu
 }
 
 ///verifica se tem um caracter a baixo de onde o cursor está para poder andar
-int verificar_caractere_baixo(lista **l, int linha_cursor, int coluna_cursor){
+int verificar_caractere_baixo(lista **l, int *linha_cursor, int *coluna_cursor){
     int contador = 0, coluna_linha_inferior = 0;
     lista *linha_inferior = *l;
 
     ///percorre até a linha de baixo do cursor faz isso contando a contidade de '\n'
-    while (contador <= linha_cursor && linha_inferior != NULL) {
+    while (contador <= *linha_cursor && linha_inferior != NULL) {
         if (linha_inferior->caracter == '\n') {
             contador++;
         }
@@ -175,19 +175,18 @@ int verificar_caractere_baixo(lista **l, int linha_cursor, int coluna_cursor){
     }
 
     ///percorre até a coluna correta da linha de baixo ou para antes se não tiver cacarcer na coluna da linah de baixo
-    while (linha_inferior != NULL && linha_inferior->caracter != '\n' && coluna_linha_inferior < coluna_cursor) {
+    while (linha_inferior != NULL &&  linha_inferior->caracter != '\n' && coluna_linha_inferior <= *coluna_cursor) {
         if (linha_inferior->caracter != '\n') {
             coluna_linha_inferior++;
         }
         linha_inferior = linha_inferior->next;
     }
 
-    move(linha_cursor + 1, coluna_linha_inferior);
+    move((*linha_cursor) + 1, coluna_linha_inferior);
     return coluna_linha_inferior;
 }
 
-///saber qual a posição que o cursor da lista o cursor está
-int saber_posicao_cursor(lista **l, int linha_cursor, int coluna_cursor){
+int contador_coluna(lista **l, int linha_cursor, int coluna_cursor){
     lista *aux = *l;
     int i, contador = 0, posicao = 0;
 
@@ -201,7 +200,38 @@ int saber_posicao_cursor(lista **l, int linha_cursor, int coluna_cursor){
     }
 
     ///caso tenha mais de uma linha ele percorre até a linah onde está o cursor faz isso contando a quantidade de '\n'
-    while(contador <= linha_cursor - 1 && aux != NULL){
+    while(contador <= (linha_cursor) - 1 && aux != NULL){
+        if(aux->caracter == '\n'){
+            contador ++;
+        }
+        aux = aux->next;
+    }
+
+    ///percorre até a coluna onde o cursor está
+    for(i = 0; i< coluna_cursor && aux != NULL; i++){
+        contador++;
+        posicao++;
+    }
+
+    return posicao;
+}
+
+///saber qual a posição que o cursor da lista o cursor está
+int saber_posicao_cursor(lista **l, int *linha_cursor, int *coluna_cursor){
+    lista *aux = *l;
+    int i, contador = 0, posicao = 0;
+
+    ///se tiver apenas uma linha ele percorre até a coluna onde está o cursor
+    if(*linha_cursor == 0){
+        for(i = 0; i<*coluna_cursor; i++){
+            posicao ++;
+        }
+
+        return posicao;
+    }
+
+    ///caso tenha mais de uma linha ele percorre até a linah onde está o cursor faz isso contando a quantidade de '\n'
+    while(contador <= (*linha_cursor) - 1 && aux != NULL){
         if(aux->caracter == '\n'){
             contador ++;
         }
@@ -210,7 +240,7 @@ int saber_posicao_cursor(lista **l, int linha_cursor, int coluna_cursor){
     }
 
     ///percorre até a coluna onde o cursor está
-    for(i = 0; i< coluna_cursor && aux != NULL; i++){
+    for(i = 0; i< *coluna_cursor && aux != NULL; i++){
         contador++;
         posicao++;
     }
@@ -250,7 +280,7 @@ void remover_posicao(lista **l, int posicao) {
 }
 
 
-void inserir_posicao(lista **l, int posicao, char caracter) {
+void inserir_posicao(lista **l, int *posicao, char caracter) {
     int contador = 0;
     lista *novo = getnode();
     lista *aux = *l;
@@ -261,13 +291,13 @@ void inserir_posicao(lista **l, int posicao, char caracter) {
     }
     novo->caracter = caracter;
 
-    if (posicao == 0 || *l == NULL) {
+    if (*posicao == 0 || *l == NULL) {
         novo->next = *l;
         *l = novo;
         return;
     }
 
-    while (contador < posicao - 1 && aux->next != NULL) {
+    while (contador < *posicao - 1 && aux->next != NULL) {
         aux = aux->next;
         contador++;
     }
@@ -303,40 +333,44 @@ void inserir_fim(lista **l, char caracter){
 }
 
 ///verifica se tem um caracter acima de onde o cursor está se tiver ele move para a posição caso não tenah ele coloca o cursor no final da linha de cima
-int verificar_caractere_acima(lista **l, int linha_cursor, int coluna_cursor) {
-
-    int contador = 0, coluna_linha_superior = 0;
+int verificar_caractere_acima(lista **l, int *linha_cursor, int *coluna_cursor) {
+    int coluna_linha_superior = 0;
     lista *linha_atual = *l;
     lista *linha_superior = *l;
 
-    if(linha_cursor != 0){
+    if (*linha_cursor != 0) {
+        int contador = 0;
 
-        ///percorre até a linha de ciam do cursor ele faz isso contando a quantidade de "\n"
-        while (contador < linha_cursor - 1 && linha_superior != NULL) {
+        // Procura a linha acima do cursor
+        while (contador < (*linha_cursor) - 1 && linha_superior != NULL) {
             if (linha_superior->caracter == '\n') {
                 contador++;
             }
             linha_superior = linha_superior->next;
         }
 
-        if (linha_superior == NULL ) {
-            return 0;
+        if (linha_superior == NULL || linha_superior->caracter == '\n') {
+            move((*linha_cursor) - 1, coluna_linha_superior);
+            return coluna_linha_superior + 1;
         }
 
-        ///na linha de cima ele percorre até a coluna onde eestá o cursor se não tiver caracter na quela posição para antes
-        while (linha_superior != NULL && linha_superior->caracter != '\n' && coluna_linha_superior < coluna_cursor) {
+        // Movimenta para a posição onde o cursor deve estar na linha acima
+        while (linha_superior != NULL && linha_superior->caracter != '\n' && coluna_linha_superior <= *coluna_cursor) {
             if (linha_superior->caracter != '\n') {
                 coluna_linha_superior++;
             }
             linha_superior = linha_superior->next;
         }
 
-        move(linha_cursor - 1, coluna_linha_superior);
-        return coluna_linha_superior;
+        move((*linha_cursor) - 1, coluna_linha_superior);
+        return coluna_linha_superior + 1;
     }
+
 
     return 0;
 }
+
+
 
 ///descobre onde é o final da linha e retorna a posção para poder mover o cursor na função da tecla "End"
 int verificar_final_linha(lista **l, int linha_cursor, int coluna_cursor){
