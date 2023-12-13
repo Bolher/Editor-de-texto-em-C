@@ -497,3 +497,22 @@ int conta_linha_branco(lista **l, int linha_cursor, int coluna_cursor){
 
     return total_linha_branco;
 }
+
+
+void contar_caracter(lista **l, int vet[]){
+    int i = 0, j = 0;
+    lista *aux = *l;
+
+    while(aux->next != NULL){
+        i++;
+
+        if(aux->caracter == '\n'){
+            vet[j] = i;
+            j++;
+            i = 0;
+        }
+
+        aux = aux->next;
+    }
+
+}

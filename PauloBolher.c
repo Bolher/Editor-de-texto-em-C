@@ -288,8 +288,20 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
     lista *aux, *anterior = NULL;
     int contador_caracteres = 0;
     int contador_linhas = -1;
+    int vet[100000];
+
+    if((*linha_cursor) == 0 && (*coluna_cursor) == 0){
+        return;
+    }
 
     posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
+
+    if(*coluna_cursor <= 0 ){
+        contar_caracter(l, vet);
+        (*linha_cursor)--;
+        (*coluna_cursor) = vet[(*linha_cursor)];
+        move(*linha_cursor, *coluna_cursor);
+    }
 
     if (posicao_cursor == 0) {
         return;
@@ -310,6 +322,7 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
         freenode(aux);
 
         (*coluna_cursor)--;
+
 
         /// contar os caracteres na linha atual e as quebras de linha
         lista *contagem = *l;
@@ -373,7 +386,6 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
         }
         aux = aux->next;
     }
-
     clear();
     exibir_lista(*l);
     refresh();
@@ -395,6 +407,16 @@ void tecla_delete(lista **l, int *linha_cursor, int *coluna_cursor){
         refresh();
 
         (*coluna_cursor)--;
+
+        if((*linha_cursor) != 0){
+            seta_para_cima(l, linha_cursor, coluna_cursor);
+            seta_para_baixo(l, linha_cursor, coluna_cursor);
+        }else{
+            seta_para_direita(l, linha_cursor, coluna_cursor);
+            seta_para_esquerda(l, linha_cursor, coluna_cursor);
+        }
+
+
         move(*linha_cursor, *coluna_cursor);
     }
 
@@ -412,10 +434,6 @@ void main(){
     lista *l;
 
     ///travando o terminal
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SMALL_RECT windowSize = {0, 0, 119, 39};
-    SetConsoleWindowInfo(hConsole, TRUE, &windowSize);
-    SetConsoleScreenBufferSize(hConsole, (COORD){120, 40});
 
 
     inicializar(&l);
@@ -564,9 +582,9 @@ void main(){
                 inserir--;
             }
 
-            if(validar == 1){
-                inserir--;
-            }
+            //if(validar == 1){
+            //    inserir--;
+            //}
 
             inserir_posicao(&l, &inserir, (char)ch);
 
@@ -580,7 +598,7 @@ void main(){
 
             move(coluna_cursor, retorno);
 
-
+            //validar = 0;
         }
 
     /// encerra o progrma se o carcater lido for o 27 no caso é a tecla Esq
