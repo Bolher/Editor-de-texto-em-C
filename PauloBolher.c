@@ -281,6 +281,7 @@ void insert(lista **l, int *linha_cursor, int *coluna_cursor, char ch){
 
 void apagar(lista **l, int *linha_cursor, int *coluna_cursor){
     int posicao_cursor;
+    int inserir;
 
     if (*l != NULL) {
         posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
@@ -293,9 +294,41 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor){
 
         (*coluna_cursor)--;
 
+//        int contador = 0;
+//        int coluna_aux = *coluna_cursor;
+//
+//        lista *percorre = *l;
+//        lista *anterior;
+//
+//        while(contador < posicao_cursor - 1){
+//            percorre = percorre->next;
+//            if(contador == posicao_cursor - 2){
+//                anterior = percorre;
+//            }
+//            contador++;
+//        }
+//
+//        while(percorre->next != NULL){
+//            if(coluna_aux == 119){
+//                lista *aux;
+//                aux = percorre->next;
+//                anterior->next = percorre->next;
+//                aux->next = percorre;
+//                percorre = percorre->next->next;
+//                coluna_aux = 0;
+//            }
+//            percorre = percorre->next;
+//            if((percorre != NULL && percorre->caracter == '\n' && percorre->next != NULL) && coluna_aux < 119){
+//               break;
+//            }
+//
+//        }
 
         seta_para_cima(l, linha_cursor, coluna_cursor);
         seta_para_baixo(l, linha_cursor, coluna_cursor);
+
+        clear();
+        exibir_lista(*l);
 
         move(*linha_cursor, *coluna_cursor);
     }
