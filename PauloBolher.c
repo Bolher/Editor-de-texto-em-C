@@ -52,6 +52,8 @@ void tecla_F2(lista **l){
             fputc(aux->caracter, arquico);
             aux = aux->next;
         }
+
+        fclose(arquico);
     }else{
         clear();
         printw("erro ao abrir o arquivo precione enter para contiar");
@@ -134,19 +136,34 @@ void seta_para_cima(lista **l, int *linha_cursor, int *coluna_cursor){
     int retorno;
 
     retorno = verificar_caractere_acima(l, linha_cursor, coluna_cursor);
-    if(retorno != 0){
-        *coluna_cursor = retorno;
+
+    if(retorno > 0){
+        *coluna_cursor = retorno - 1;
         (*linha_cursor)--;
+        move(*linha_cursor, *coluna_cursor);
+
+    }else if(retorno == 0){
+        (*linha_cursor)--;
+        move(*linha_cursor, 0);
+        (*coluna_cursor) = 0;
     }
+
 }
 
 void seta_para_baixo(lista **l, int *linha_cursor, int *coluna_cursor){
     int retorno;
 
     retorno = verificar_caractere_baixo(l, linha_cursor, coluna_cursor);
-    if(retorno != 0){
-        *coluna_cursor = retorno;
+
+    if(retorno > 0){
+        *coluna_cursor = retorno - 1;
         (*linha_cursor)++;
+        move(*linha_cursor, *coluna_cursor);
+
+    }else if(retorno == 0){
+        (*linha_cursor)++;
+        move(*linha_cursor, 0);
+        (*coluna_cursor) = 0;
     }
 }
 
@@ -182,30 +199,34 @@ void page_up(lista **l, int *linha_cursor, int *coluna_cursor, int total_linha){
 
 void enter(lista **l, int *linha_cursor, int *coluna_cursor, int *posicao_inserir, int *total_linha){
     int retorno;
-    char oi;
-
     retorno = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
     inserir_posicao(l, &retorno, '\n');
-    (*coluna_cursor)++;
 
 
-    if(verificar_andar_cursor_direita(l, coluna_cursor, linha_cursor)){
 
-        retorno = contador_coluna(l, *linha_cursor, *coluna_cursor);
+    if(validacao_enter(l, coluna_cursor, linha_cursor)){
+
         (*linha_cursor)++;
+        (*coluna_cursor) = contador_coluna(l, *linha_cursor, *coluna_cursor);
         (*posicao_inserir) ++;
         (*total_linha) ++;
-        move(*linha_cursor, retorno);
+
 
         seta_para_cima(l, linha_cursor, coluna_cursor);
         seta_para_baixo(l, linha_cursor, coluna_cursor);
 
+        move(*linha_cursor, *coluna_cursor);
+
     }else{
 
-        *coluna_cursor = 0;
-        (*linha_cursor)++;
+        (*coluna_cursor) = 0;
+        (*linha_cursor) = (*linha_cursor) + 2;
         (*posicao_inserir) ++;
         (*total_linha) ++;
+
+        seta_para_cima(l, linha_cursor, coluna_cursor);
+        seta_para_baixo(l, linha_cursor, coluna_cursor);
+
         move(*linha_cursor, *coluna_cursor);
 
     }
@@ -216,8 +237,7 @@ void enter(lista **l, int *linha_cursor, int *coluna_cursor, int *posicao_inseri
     exibir_lista(*l);
     refresh();
 
-    //printw("linha: %d, coluna: %d", *linha_cursor, *coluna_cursor);
-
+    move(*linha_cursor, *coluna_cursor);
 
 }
 
@@ -272,6 +292,11 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor){
         refresh();
 
         (*coluna_cursor)--;
+
+
+        seta_para_cima(l, linha_cursor, coluna_cursor);
+        seta_para_baixo(l, linha_cursor, coluna_cursor);
+
         move(*linha_cursor, *coluna_cursor);
     }
 }
@@ -297,7 +322,8 @@ void main(){
     int ch;
     int linha_cursor = 0, coluna_cursor = 0, posicao_inserir = 0;
     int total_linha = 0;
-    int retorno, inserir;
+    int retorno, inserir = 0;
+    int total_branco;
 
     lista *l;
 
@@ -350,6 +376,7 @@ void main(){
         ///tecla enter
         }else if(ch == KEY_ENTER || ch == '\n'){
             enter(&l, &coluna_cursor, &linha_cursor, &posicao_inserir, &total_linha);
+
 
         ///tecla insert
         }else if(ch == KEY_IC){
@@ -419,8 +446,30 @@ void main(){
             }
 
 
+
+            if(saber_caraceter_posicao(&l, coluna_cursor, linha_cursor)){
+
+            }
+
             inserir = saber_posicao_cursor(&l, &coluna_cursor, &linha_cursor);
+
+            lista *aux;
+
+            aux = l;
+
+            int contador = 1;
+
+            while(contador < inserir){
+                aux = aux->next;
+                contador++;
+            }
+
+            if(aux != NULL && aux->caracter == '\n' && aux->next != NULL){
+                inserir--;
+            }
+
             inserir_posicao(&l, &inserir, (char)ch);
+
             posicao_inserir++;
 
             clear();
@@ -428,9 +477,8 @@ void main(){
             refresh();
 
             retorno = contador_coluna(&l, coluna_cursor, linha_cursor);
-            move(coluna_cursor, retorno);
 
-            //printw("linha: %d, coluna %d", coluna_cursor, retorno);
+            move(coluna_cursor, retorno);
 
         }
 
