@@ -286,6 +286,8 @@ void insert(lista **l, int *linha_cursor, int *coluna_cursor, char ch){
 void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
     int posicao_cursor;
     lista *aux, *anterior = NULL;
+    int contador_caracteres = 0;
+    int contador_linhas = -1; // Iniciar a contagem de linhas de -1 porque a primeira linha não tem "\n"
 
     // Encontrar a posição do cursor na lista
     posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
@@ -311,21 +313,38 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
         // Atualizar a posição do cursor
         (*coluna_cursor)--;
 
-        // Deslocar todos os caracteres subsequentes para a esquerda
-        lista *atual = anterior;
-        while (atual->next != NULL && atual->next->caracter != '\n') {
-            atual->caracter = atual->next->caracter;
-            atual = atual->next;
+        // Contar os caracteres na linha atual e as quebras de linha
+        lista *contagem = *l;
+        while (contagem != NULL && contagem != aux) {
+            if (contagem->caracter == '\n') {
+                contador_linhas++;
+                if (contador_linhas == *linha_cursor) {
+                    break; // Encontramos o fim da linha atual
+                }
+                contador_caracteres = 0; // Reiniciar a contagem para a próxima linha
+            } else {
+                contador_caracteres++; // Contar caracteres apenas na linha atual
+            }
+            contagem = contagem->next;
         }
 
-        // Se o próximo nó for uma quebra de linha, encontre o início da próxima linha
-        if (atual->next != NULL && atual->next->caracter == '\n') {
-            lista *proxima_linha = atual->next->next;
-            // Se a próxima linha não estiver vazia, mova o primeiro caractere
-            if (proxima_linha != NULL && proxima_linha->caracter != '\n') {
-                atual->caracter = proxima_linha->caracter;
-                atual->next = proxima_linha->next;
-                freenode(proxima_linha);
+        // Se a linha atual estiver completa, mover o conteúdo da linha de baixo
+        if (contador_caracteres >= 117) {
+            // Deslocar todos os caracteres subsequentes para a esquerda
+            lista *atual = anterior;
+            while (atual->next != NULL && atual->next->caracter != '\n') {
+                atual->caracter = atual->next->caracter;
+                atual = atual->next;
+            }
+            // Se o próximo nó for uma quebra de linha, encontre o início da próxima linha
+            if (atual->next != NULL && atual->next->caracter == '\n') {
+                lista *proxima_linha = atual->next->next;
+                // Se a próxima linha não estiver vazia, mova o primeiro caractere
+                if (proxima_linha != NULL && proxima_linha->caracter != '\n') {
+                    atual->caracter = proxima_linha->caracter;
+                    atual->next = proxima_linha->next;
+                    freenode(proxima_linha);
+                }
             }
         }
     } else {
@@ -354,6 +373,7 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
                 ultimo_nao_nulo->next = nova_quebra_de_linha;
             }
             contador_coluna = 0;
+            ultimo_nao_nulo = NULL; // Resetar o último não nulo para a próxima linha
         }
         aux = aux->next;
     }
@@ -365,6 +385,8 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
 
     // Mover o cursor para a posição correta
     move(*linha_cursor, *coluna_cursor);
+
+    printw("%d", contador_caracteres);
 }
 
 void tecla_delete(lista **l, int *linha_cursor, int *coluna_cursor){
