@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <curses.h> /// para mapear teclas como f1 e f10, e tambem armazenar carcteres na estrutura de dados sem apartar enter
 #include <unistd.h> /// para saber se um arquivo já existe
+#include <windows.h>
 #include "PauloBolher.h"
 
 ///foi utilizado a biblioteca PDcurses sendo necessario a sua instalação e compilação para o funcioanmento do codigo fonte
@@ -167,6 +168,7 @@ void seta_para_baixo(lista **l, int *linha_cursor, int *coluna_cursor){
     }
 }
 
+
 void page_down(lista **l, int *linha_cursor, int *coluna_cursor, int total_linha){
     int verficar_pageDOWN = 0;
 
@@ -213,7 +215,7 @@ void enter(lista **l, int *linha_cursor, int *coluna_cursor, int *posicao_inseri
 
 
         seta_para_cima(l, linha_cursor, coluna_cursor);
-        seta_para_baixo(l, linha_cursor, coluna_cursor);
+        seta_para_baixo(l, linha_cursor,coluna_cursor);
 
         move(*linha_cursor, *coluna_cursor);
 
@@ -238,6 +240,8 @@ void enter(lista **l, int *linha_cursor, int *coluna_cursor, int *posicao_inseri
     refresh();
 
     move(*linha_cursor, *coluna_cursor);
+
+    //printw("linha: %d, coluna: %d", *linha_cursor, *coluna_cursor);
 
 }
 
@@ -279,59 +283,106 @@ void insert(lista **l, int *linha_cursor, int *coluna_cursor, char ch){
     move(*linha_cursor, *coluna_cursor);
 }
 
-void apagar(lista **l, int *linha_cursor, int *coluna_cursor){
+void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
     int posicao_cursor;
-    int inserir;
+    lista *aux, *anterior = NULL;
+    int contador_caracteres = 0;
+    int contador_linhas = -1;
 
-    if (*l != NULL) {
-        posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
-        posicao_cursor = posicao_cursor - 1;
+    posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
 
-        remover_posicao(l, posicao_cursor);
-        clear();
-        exibir_lista(*l);
-        refresh();
+    if (posicao_cursor == 0) {
+        return;
+    }
+
+    // Navegar até o nó anterior ao nó que será removido
+    aux = *l;
+    for (int i = 0; i < posicao_cursor - 1; ++i) {
+        anterior = aux;
+        aux = aux->next;
+    }
+
+    // Se o nó atual não for o primeiro nó
+    if (anterior != NULL) {
+        // Remover o nó atual e conectar o nó anterior ao próximo nó
+        anterior->next = aux->next;
+        freenode(aux);
 
         (*coluna_cursor)--;
 
-//        int contador = 0;
-//        int coluna_aux = *coluna_cursor;
-//
-//        lista *percorre = *l;
-//        lista *anterior;
-//
-//        while(contador < posicao_cursor - 1){
-//            percorre = percorre->next;
-//            if(contador == posicao_cursor - 2){
-//                anterior = percorre;
-//            }
-//            contador++;
-//        }
-//
-//        while(percorre->next != NULL){
-//            if(coluna_aux == 119){
-//                lista *aux;
-//                aux = percorre->next;
-//                anterior->next = percorre->next;
-//                aux->next = percorre;
-//                percorre = percorre->next->next;
-//                coluna_aux = 0;
-//            }
-//            percorre = percorre->next;
-//            if((percorre != NULL && percorre->caracter == '\n' && percorre->next != NULL) && coluna_aux < 119){
-//               break;
-//            }
-//
-//        }
+        // Contar os caracteres na linha atual e as quebras de linha
+        lista *contagem = *l;
+        while (contagem != NULL && contagem != aux) {
+            if (contagem->caracter == '\n') {
+                contador_linhas++;
+                if (contador_linhas == *linha_cursor) {
+                    break; // Encontramos o fim da linha atual
+                }
+                contador_caracteres = 0;
+            } else {
+                contador_caracteres++;
+            }
+            contagem = contagem->next;
+        }
 
-        seta_para_cima(l, linha_cursor, coluna_cursor);
-        seta_para_baixo(l, linha_cursor, coluna_cursor);
-
-        clear();
-        exibir_lista(*l);
-
-        move(*linha_cursor, *coluna_cursor);
+        // Se a linha atual estiver completa, mover o conteúdo da linha de baixo
+        if (contador_caracteres >= 118) {
+            // Deslocar todos os caracteres subsequentes para a esquerda
+            lista *atual = anterior;
+            while (atual->next != NULL && atual->next->caracter != '\n') {
+                atual->caracter = atual->next->caracter;
+                atual = atual->next;
+            }
+            // Se o próximo nó for uma quebra de linha, encontre o início da próxima linha
+            if (atual->next != NULL && atual->next->caracter == '\n') {
+                lista *proxima_linha = atual->next->next;
+                // Se a próxima linha não estiver vazia, mova o primeiro caractere
+                if (proxima_linha != NULL && proxima_linha->caracter != '\n') {
+                    atual->caracter = proxima_linha->caracter;
+                    atual->next = proxima_linha->next;
+                    freenode(proxima_linha);
+                }
+            }
+        }
+    } else {
+        // Se o nó a ser removido for o primeiro da lista
+        *l = aux->next;
+        freenode(aux);
+        // Atualizar a posição do cursor
+        (*coluna_cursor)--;
     }
+
+    // Reajustar a posição das quebras de linha
+    aux = *l;
+    int contador_coluna = 0;
+    lista *ultimo_nao_nulo = NULL;
+    while (aux != NULL) {
+        contador_coluna++;
+        if (aux->caracter != '\n') {
+            ultimo_nao_nulo = aux;
+        }
+        if (contador_coluna == 120 || aux->next == NULL || aux->next->caracter == '\n') {
+            if (ultimo_nao_nulo != NULL && (ultimo_nao_nulo->next == NULL || ultimo_nao_nulo->next->caracter != '\n')) {
+                // Insere uma quebra de linha após o último caractere não nulo
+                lista *nova_quebra_de_linha = (lista *)malloc(sizeof(lista));
+                nova_quebra_de_linha->caracter = '\n';
+                nova_quebra_de_linha->next = ultimo_nao_nulo->next;
+                ultimo_nao_nulo->next = nova_quebra_de_linha;
+            }
+            contador_coluna = 0;
+            ultimo_nao_nulo = NULL; // Resetar o último não nulo para a próxima linha
+        }
+        aux = aux->next;
+    }
+
+    clear();
+    exibir_lista(*l);
+    refresh();
+
+    move(*linha_cursor, *coluna_cursor);
+
+    printw("%d", contador_caracteres);
+
 }
 
 void tecla_delete(lista **l, int *linha_cursor, int *coluna_cursor){
@@ -357,8 +408,16 @@ void main(){
     int total_linha = 0;
     int retorno, inserir = 0;
     int total_branco;
+    int buffer_height = 100;
 
     lista *l;
+
+    ///travando o terminal
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SMALL_RECT windowSize = {0, 0, 119, 39};
+    SetConsoleWindowInfo(hConsole, TRUE, &windowSize);
+    SetConsoleScreenBufferSize(hConsole, (COORD){120, 40});
+
 
     inicializar(&l);
 
@@ -368,8 +427,14 @@ void main(){
     cbreak();
     /// inicialzia a mapeação de teclas como f1 e f10 da biblioteca curses
     keypad(stdscr, TRUE);
+
+    noecho();
     ///paginação no terminal
-    scrollok(stdscr, TRUE);
+
+
+
+//    scrollok(stdscr, TRUE);
+//    setscrreg(0, buffer_height - 1);
 
     do{
         ch = getch();
@@ -473,12 +538,10 @@ void main(){
 
                 inserir_posicao(&l, &posicao_inserir, '\n');
                 posicao_inserir++;
-                coluna_cursor ++;
+                coluna_cursor++;
                 total_linha ++;
-                linha_cursor = 0;
+                linha_cursor = 1;
             }
-
-
 
             if(saber_caraceter_posicao(&l, coluna_cursor, linha_cursor)){
 
@@ -513,6 +576,7 @@ void main(){
 
             move(coluna_cursor, retorno);
 
+
         }
 
     /// encerra o progrma se o carcater lido for o 27 no caso é a tecla Esq
@@ -524,4 +588,7 @@ void main(){
     if(ch == '1'){
         tecla_F2(&l);
     }
+
+    endwin();
+
 }
