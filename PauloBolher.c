@@ -287,59 +287,56 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
     int posicao_cursor;
     lista *aux, *anterior = NULL;
     int contador_caracteres = 0;
-    int contador_linhas = -1; // Iniciar a contagem de linhas de -1 porque a primeira linha não tem "\n"
+    int contador_linhas = -1;
 
-    // Encontrar a posição do cursor na lista
     posicao_cursor = saber_posicao_cursor(l, linha_cursor, coluna_cursor);
 
-    // Se a posição do cursor for 0, não há nada para apagar
     if (posicao_cursor == 0) {
         return;
     }
 
-    // Navegar até o nó anterior ao nó que será removido
+    /// vai até o nó anterior ao nó que será removido
     aux = *l;
     for (int i = 0; i < posicao_cursor - 1; ++i) {
         anterior = aux;
         aux = aux->next;
     }
 
-    // Se o nó atual não for o primeiro nó
+    /// se o nó atual não for o primeiro nó, remove o nó atual e conectar o nó anterior ao próximo nó
     if (anterior != NULL) {
-        // Remover o nó atual e conectar o nó anterior ao próximo nó
+
         anterior->next = aux->next;
+
         freenode(aux);
 
-        // Atualizar a posição do cursor
         (*coluna_cursor)--;
 
-        // Contar os caracteres na linha atual e as quebras de linha
+        /// contar os caracteres na linha atual e as quebras de linha
         lista *contagem = *l;
         while (contagem != NULL && contagem != aux) {
             if (contagem->caracter == '\n') {
                 contador_linhas++;
                 if (contador_linhas == *linha_cursor) {
-                    break; // Encontramos o fim da linha atual
+                    break; /// encontra o fim da linha atual
                 }
-                contador_caracteres = 0; // Reiniciar a contagem para a próxima linha
+                contador_caracteres = 0;
             } else {
-                contador_caracteres++; // Contar caracteres apenas na linha atual
+                contador_caracteres++;
             }
             contagem = contagem->next;
         }
 
-        // Se a linha atual estiver completa, mover o conteúdo da linha de baixo
+        /// se a linha atual estiver completa, mover o conteúdo da linha de baixo, deslocar todos os caracteres para a esquerda
         if (contador_caracteres >= 117) {
-            // Deslocar todos os caracteres subsequentes para a esquerda
+
             lista *atual = anterior;
             while (atual->next != NULL && atual->next->caracter != '\n') {
                 atual->caracter = atual->next->caracter;
                 atual = atual->next;
             }
-            // Se o próximo nó for uma quebra de linha, encontre o início da próxima linha
+            /// se o próximo nó for uma quebra de linha, encontre o início da próxima linha e se a próxima linha não estiver vazia, mova o primeiro caractere
             if (atual->next != NULL && atual->next->caracter == '\n') {
                 lista *proxima_linha = atual->next->next;
-                // Se a próxima linha não estiver vazia, mova o primeiro caractere
                 if (proxima_linha != NULL && proxima_linha->caracter != '\n') {
                     atual->caracter = proxima_linha->caracter;
                     atual->next = proxima_linha->next;
@@ -348,14 +345,13 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
             }
         }
     } else {
-        // Se o nó a ser removido for o primeiro da lista
+        /// se o nó a ser removido for o primeiro da lista atualizar a posição do cursor
         *l = aux->next;
         freenode(aux);
-        // Atualizar a posição do cursor
         (*coluna_cursor)--;
     }
 
-    // Reajustar a posição das quebras de linha
+    /// reajustar a posição das quebras de linha
     aux = *l;
     int contador_coluna = 0;
     lista *ultimo_nao_nulo = NULL;
@@ -366,27 +362,25 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
         }
         if (contador_coluna == 120 || aux->next == NULL || aux->next->caracter == '\n') {
             if (ultimo_nao_nulo != NULL && (ultimo_nao_nulo->next == NULL || ultimo_nao_nulo->next->caracter != '\n')) {
-                // Insere uma quebra de linha após o último caractere não nulo
+                /// insere uma quebra de linha após o último caractere não nulo
                 lista *nova_quebra_de_linha = (lista *)malloc(sizeof(lista));
                 nova_quebra_de_linha->caracter = '\n';
                 nova_quebra_de_linha->next = ultimo_nao_nulo->next;
                 ultimo_nao_nulo->next = nova_quebra_de_linha;
             }
             contador_coluna = 0;
-            ultimo_nao_nulo = NULL; // Resetar o último não nulo para a próxima linha
+            ultimo_nao_nulo = NULL;
         }
         aux = aux->next;
     }
 
-    // Atualizar a exibição do texto
     clear();
     exibir_lista(*l);
     refresh();
 
-    // Mover o cursor para a posição correta
     move(*linha_cursor, *coluna_cursor);
 
-    printw("%d", contador_caracteres);
+    //printw("linha: %d, coluna: %d", *linha_cursor, *coluna_cursor);
 }
 
 void tecla_delete(lista **l, int *linha_cursor, int *coluna_cursor){
@@ -413,6 +407,7 @@ void main(){
     int retorno, inserir = 0;
     int total_branco;
     int buffer_height = 100;
+    int validar = 0;
 
     lista *l;
 
@@ -529,6 +524,7 @@ void main(){
         /// tecla backspace
         }else if(ch == 8){
             apagar(&l, &coluna_cursor, &linha_cursor);
+            validar = 1;
 
         ///tecla delete
         }else if(ch == KEY_DC){
@@ -547,9 +543,9 @@ void main(){
                 linha_cursor = 1;
             }
 
-            if(saber_caraceter_posicao(&l, coluna_cursor, linha_cursor)){
+            //if(saber_caraceter_posicao(&l, coluna_cursor, linha_cursor)){
 
-            }
+            //}
 
             inserir = saber_posicao_cursor(&l, &coluna_cursor, &linha_cursor);
 
@@ -565,6 +561,10 @@ void main(){
             }
 
             if(aux != NULL && aux->caracter == '\n' && aux->next != NULL){
+                inserir--;
+            }
+
+            if(validar == 1){
                 inserir--;
             }
 
