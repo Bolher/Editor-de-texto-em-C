@@ -390,6 +390,7 @@ void apagar(lista **l, int *linha_cursor, int *coluna_cursor) {
     exibir_lista(*l);
     refresh();
 
+
     move(*linha_cursor, *coluna_cursor);
 
     //printw("linha: %d, coluna: %d", *linha_cursor, *coluna_cursor);
@@ -445,7 +446,7 @@ void main(){
     /// inicialzia a mapeação de teclas como f1 e f10 da biblioteca curses
     keypad(stdscr, TRUE);
 
-    noecho();
+    //noecho();
     ///paginação no terminal
 
 
@@ -549,7 +550,7 @@ void main(){
             tecla_delete(&l, &coluna_cursor, &linha_cursor);
 
         ///caso nenhuma tecla de ação tenha sido preciona ele interpreta como um carcter e armazena na lista
-        }else {
+        }else{
             linha_cursor++;
 
             if (linha_cursor % 119 == 0) {
@@ -578,13 +579,19 @@ void main(){
                 contador++;
             }
 
-            if(aux != NULL && aux->caracter == '\n' && aux->next != NULL){
+            if(validar == 1){
+                inserir --;
+            }
+
+            if((aux != NULL && aux->caracter == '\n' && aux->next != NULL) && validar == 0){
                 inserir--;
             }
 
-            //if(validar == 1){
-            //    inserir--;
-            //}
+            if(ch == '\t'){
+                ch == ' ';
+            }
+
+
 
             inserir_posicao(&l, &inserir, (char)ch);
 
