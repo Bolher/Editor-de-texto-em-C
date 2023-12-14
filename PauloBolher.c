@@ -446,13 +446,8 @@ void main(){
     /// inicialzia a mapeação de teclas como f1 e f10 da biblioteca curses
     keypad(stdscr, TRUE);
 
-    //noecho();
-    ///paginação no terminal
-
-
-
-//    scrollok(stdscr, TRUE);
-//    setscrreg(0, buffer_height - 1);
+    scrollok(stdscr, TRUE);
+    //setscrreg(0, buffer_height - 1);
 
     do{
         ch = getch();
@@ -601,12 +596,14 @@ void main(){
             exibir_lista(l);
             refresh();
 
-            retorno = contador_coluna(&l, coluna_cursor, linha_cursor);
+            linha_cursor = contador_coluna(&l, coluna_cursor, linha_cursor);
 
-            move(coluna_cursor, retorno);
+            move(coluna_cursor, linha_cursor);
 
             //validar = 0;
         }
+
+        //printw("linha: %d, coluna: %d", coluna_cursor, linha_cursor);
 
     /// encerra o progrma se o carcater lido for o 27 no caso é a tecla Esq
     }while(ch != 27);
