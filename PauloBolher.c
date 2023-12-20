@@ -449,6 +449,8 @@ void main(){
     scrollok(stdscr, TRUE);
     //setscrreg(0, buffer_height - 1);
 
+
+
     do{
         ch = getch();
 
